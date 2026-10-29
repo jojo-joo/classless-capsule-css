@@ -7,9 +7,10 @@
    a <fieldset> whose direct <label>s wrap radios is a "one choice out of n"
    control, one whose <label>s wrap checkboxes is "n independent choices".
 
-   Design language: quiet gray wells with a transparent 2px border that turns
-   blue on focus, 12px corners, and 999px pills for everything that is really
-   a choice (degree, interests, switch, colour swatch, volume). One accent
+   Design language: one quiet grey capsule for every control — text fields,
+   segmented choices, switch, colour swatch, volume — with a transparent 2px
+   border that turns blue on focus. 12px corners are left for buttons,
+   dialogs and content blocks, where the surface is not a control. One accent
    colour, no decoration beyond what is needed for depth. Dark mode follows
    light-dark(), driven by the page's color-scheme. The sheet is motion-free:
    no transition, no keyframes, every state change lands in a single frame.
@@ -144,7 +145,7 @@ blockquote footer {
 }
 
 /* --------------------------------------------------------------------------
-   4. Text controls: one quiet well per field
+   4. Text controls: one quiet capsule per field
 
    The exclusion list is written against the widgets that get a skin of their
    own further down, so numbers, dates and the next new text-like `type=` all
@@ -158,7 +159,24 @@ blockquote footer {
    `[type="submit"]`, `[type="reset"]` and `[type="button"]` stay excluded
    here because section 8 skins them as accent controls, together with the
    <button> element.
+
+   Every field wears the same surface as a segmented control: the grey fill
+   and the 999px radius are declared once, in the rule directly below, and
+   applied to the input / select / textarea group plus the two fieldset
+   tracks. A widget that needs another fill (checkbox, switch, range, colour,
+   buttons) then only has to repaint `background-color`; nothing repeats the
+   grey or the shape.
    -------------------------------------------------------------------------- */
+:where(
+  input:not([type="image"]),
+  select,
+  textarea,
+  fieldset:has(> label > :is(input[type="radio"], input[type="checkbox"]))
+) {
+  background-color: var(--bg-gray);
+  border-radius: var(--radius-pill);
+}
+
 :where(
   input:not(
     [type="checkbox"],
@@ -179,8 +197,6 @@ blockquote footer {
   block-size: var(--control-block);
   padding: 0 1rem;
   border: 2px solid transparent;
-  border-radius: var(--radius-md);
-  background-color: var(--bg-gray);
   color: var(--text-main);
   font-family: inherit;
   font-size: 0.95rem;
@@ -236,12 +252,13 @@ input[aria-invalid="true"]:focus {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
 }
 
+/* A disabled control keeps the surface grey it already has — only the
+   opacity drops — so there is no fill to re-state here. */
 input:disabled,
 select:disabled,
 textarea:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background-color: var(--bg-gray);
 }
 
 /* Read-only is not disabled: it keeps the field legible, only the border
@@ -388,15 +405,15 @@ fieldset > legend {
   color: var(--text-muted);
 }
 
-/* --- one track for both segmented controls ----------------------------- */
+/* --- one track for both segmented controls -----------------------------
+   The grey fill and the capsule radius come from the shared surface in
+   section 4; only what is specific to a track is left here. */
 fieldset:has(> label > :is(input[type="radio"], input[type="checkbox"])) {
   display: flex;
   inline-size: 100%;
   block-size: var(--control-block);
   padding: 4px;
   overflow: clip;
-  border-radius: var(--radius-pill);
-  background-color: var(--bg-gray);
 }
 
 /* --- one segment for both ---------------------------------------------- */
@@ -473,12 +490,13 @@ fieldset:has(> label > input:focus-visible) {
 /* --------------------------------------------------------------------------
    7. File, colour and range
 
-   The file picker is deliberately skinned as an ordinary well: it inherits
-   the text-control rule in section 4 (gray fill, 12px corners, 2px transparent
-   border that turns blue on focus), so it lines up with a text input of the
-   same row. Only the native button is hidden; the file name stays visible as
-   the field's value, and the whole well remains clickable to open the picker
-   because the <input> itself is still the hit target.
+   The file picker is deliberately skinned as an ordinary field: it inherits
+   the text-control rule in section 4 (the shared grey capsule, 2px
+   transparent border that turns blue on focus), so it lines up with a text
+   input of the same row. Only the native button is hidden; the file name
+   stays visible as the field's value, and the whole capsule remains
+   clickable to open the picker because the <input> itself is still the hit
+   target.
 
    The "no file chosen" text lives in the UA shadow DOM as an anonymous text
    node, so `align-items: center` cannot be relied on to centre it across

@@ -44,18 +44,6 @@
       justify-content: end;
       align-items: center;
     }
-
-    /* Only the text wells read from the left. Submit / reset are accent
-       buttons whose label is centred by the theme, and a blanket
-       `input { text-align: left }` would outrank the theme's zero-specificity
-       `:where()` rule and drag their label back to the left edge. */
-    form>row>input:not([type="submit"], [type="reset"], [type="button"]) {
-      text-align: left;
-    }
-
-    form>row>input[type="color"] {
-      justify-self: start;
-    }
   </style>
 </head>
 

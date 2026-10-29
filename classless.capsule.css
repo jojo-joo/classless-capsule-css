@@ -11,7 +11,8 @@
    blue on focus, 12px corners, and 999px pills for everything that is really
    a choice (degree, interests, switch, colour swatch, volume). One accent
    colour, no decoration beyond what is needed for depth. Dark mode follows
-   light-dark(), driven by the page's color-scheme.
+   light-dark(), driven by the page's color-scheme. The sheet is motion-free:
+   no transition, no keyframes, every state change lands in a single frame.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -49,8 +50,6 @@
      rows of a form line up. Widgets that are naturally smaller (checkbox,
      switch, colour, range) get the margin that centres them inside it. */
   --control-block: 2.75rem;
-  --transition: background-color 0.2s ease, border-color 0.2s ease,
-    box-shadow 0.2s ease, color 0.2s ease;
 
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
@@ -186,7 +185,6 @@ blockquote footer {
   font-family: inherit;
   font-size: 0.95rem;
   outline: none;
-  transition: var(--transition);
 }
 
 /* Multiline stays multiline: the fixed height only belongs to single-line
@@ -295,7 +293,6 @@ input[type="checkbox"]:not([role="switch"]) {
   background-position: center;
   background-size: 80%;
   cursor: pointer;
-  transition: var(--transition);
 }
 
 input[type="checkbox"]:not([role="switch"]):checked {
@@ -318,7 +315,6 @@ input[role="switch"] {
   border-radius: var(--radius-pill);
   background-color: light-dark(#d1d5db, #3a404b);
   cursor: pointer;
-  transition: var(--transition);
 }
 
 input[role="switch"]::after {
@@ -331,7 +327,6 @@ input[role="switch"]::after {
   border-radius: 50%;
   background-color: #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
 }
 
 input[role="switch"]:checked {
@@ -421,7 +416,6 @@ fieldset:has(> label > :is(input[type="radio"], input[type="checkbox"])) > label
   line-height: 1.6;
   text-align: center;
   cursor: pointer;
-  transition: var(--transition);
 }
 
 /* --- the checked segment: the same fill and depth as submit / reset ----
@@ -651,7 +645,6 @@ input[type="range"]:focus-visible {
   line-height: var(--control-block);
   text-align: center;
   cursor: pointer;
-  transition: var(--transition);
 
   &:hover {
     background-color: var(--primary-hover);
@@ -724,7 +717,6 @@ summary::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
-  transition: transform 0.2s ease;
 }
 
 details[open] summary::after {
@@ -769,7 +761,11 @@ progress::-moz-progress-bar {
 /* Pico's model rather than an overlay: the spinner is an inline ::before
    that sits *before* the label with a small gap, so it can never cover the
    text. An empty placeholder (an empty <article>) gets a line of its own,
-   with the spinner centred on it. */
+   with the spinner centred on it.
+
+   The ring does not spin: this sheet is motion-free, so the missing quarter
+   (the transparent top border) is what carries the "still working" meaning,
+   together with `cursor: progress`. */
 [aria-busy="true"] {
   cursor: progress;
   opacity: 0.7;
@@ -784,7 +780,6 @@ progress::-moz-progress-bar {
   border: 2px solid var(--primary);
   border-block-start-color: transparent;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
 }
 
 /* on a filled button the accent ring would vanish into the accent background,
@@ -805,10 +800,4 @@ progress::-moz-progress-bar {
 
 [aria-busy="true"]:is(button, [role="button"], [type="submit"], [type="button"], [type="reset"]) {
   pointer-events: none;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }

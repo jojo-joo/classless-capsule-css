@@ -279,12 +279,7 @@ select {
    A checkbox is a square well with a hand-drawn check; a switch is the same
    idea stretched into a track, so it is a checkbox with role="switch".
    -------------------------------------------------------------------------- */
-/* Wrapped in :where() so the skin comes out at specificity (0,0,1), like the
-   other element-level rules in this sheet. The segmented-control anchor in
-   section 6 then outranks it on its own, which is what lets that anchor be
-   one rule for both radios and checkboxes instead of a long
-   `fieldset > label > input[type="checkbox"]` specificity chain. */
-input:where([type="checkbox"]:not([role="switch"])) {
+input[type="checkbox"]:not([role="switch"]) {
   appearance: none;
   -webkit-appearance: none;
   flex: none;
@@ -303,7 +298,7 @@ input:where([type="checkbox"]:not([role="switch"])) {
   transition: var(--transition);
 }
 
-input:where([type="checkbox"]:not([role="switch"])):checked {
+input[type="checkbox"]:not([role="switch"]):checked {
   border-color: var(--primary);
   background-color: var(--primary);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
@@ -363,28 +358,25 @@ input[role="switch"]:focus-visible {
    itself stays in the tab order (hidden, not `display: none`) so arrows and
    space still work.
 
+   The two controls are one capsule, so the track, the segment and the
+   checked state are written once each; only the checkbox group's seam (two
+   touching checked segments must read as one blue shape) stays per-type.
+   A checked segment is filled from the label's own box, and the track's 4px
+   padding is what leaves the ring of track colour around it — since an 18px
+   pill on a 36px-tall segment is concentric with the track's 22px one, the
+   ring keeps the same width all the way round.
+
    The focus ring is drawn on the <fieldset> itself, not on a segment, so it
    costs no space inside any segment and cannot change the size or colour of
    the checked pill.
 
-   The checkbox group fills itself exactly like the radio group: the checked
-   label turns blue on its own box, with the same soft shadow under it, and
-   the label is already a pill. The track's 4px padding keeps that box 4px
-   inside the track, so the blue sits just inside the capsule with a thin
-   ring of track showing around it — and since an 18px pill on a 36px-tall
-   segment is concentric with the track's 22px one, the ring keeps the same
-   width all the way round.
-
-   Two touching checked segments square off the edge they share, so the pair
-   still reads as one blue shape instead of two pills kissing at the seam,
-   and the left one stops 0.5px short of that seam — the sliver of track left
-   between them is the hairline.
-
    The track clips with `overflow: clip` rather than `hidden`: both clip the
    same way, but `hidden` turns the fieldset into a scroll container, and the
-   focus scroll that follows a click on the (visually hidden) checkbox then
-   scrolls it down, dragging the segments out of the track. `clip` has no
-   scroll box, so the track cannot move.
+   focus scroll that follows a click on the (visually hidden) member input
+   then scrolls it down, dragging the segments out of the track. `clip` has
+   no scroll box, so the track cannot move. On a radio group it clips
+   nothing: a checked segment's shadow is smaller than the 4px of track it
+   sits in.
    -------------------------------------------------------------------------- */
 
 fieldset {
@@ -401,17 +393,19 @@ fieldset > legend {
   color: var(--text-muted);
 }
 
-/* --- radio group -------------------------------------------------------- */
-fieldset:has(> label > input[type="radio"]) {
+/* --- one track for both segmented controls ----------------------------- */
+fieldset:has(> label > :is(input[type="radio"], input[type="checkbox"])) {
   display: flex;
   inline-size: 100%;
   block-size: var(--control-block);
   padding: 4px;
+  overflow: clip;
   border-radius: var(--radius-pill);
   background-color: var(--bg-gray);
 }
 
-fieldset:has(> label > input[type="radio"]) > label {
+/* --- one segment for both ---------------------------------------------- */
+fieldset:has(> label > :is(input[type="radio"], input[type="checkbox"])) > label {
   position: relative;
   display: flex;
   flex: 1 1 0;
@@ -425,88 +419,21 @@ fieldset:has(> label > input[type="radio"]) > label {
   font-size: 0.95rem;
   font-weight: 400;
   line-height: 1.6;
+  text-align: center;
   cursor: pointer;
   transition: var(--transition);
 }
 
-fieldset:has(> label > input[type="radio"]) > label > input[type="radio"] {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  inline-size: 1px;
-  block-size: 1px;
-  margin: 0;
-  padding: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-fieldset:has(> label > input[type="radio"]) > label:has(> input:checked) {
+/* --- the checked segment: the same fill and depth as submit / reset ----
+   `fieldset:has(> label > input)` in front is what makes this outrank the
+   segment rule above; `fieldset > label:has(> input:checked)` alone would
+   lose on specificity. A radio group can only have one checked segment, so
+   the same rule serves both controls. */
+fieldset:has(> label > input) > label:has(> input:checked) {
   background-color: var(--primary);
   color: var(--on-primary);
   font-weight: 500;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
-}
-
-/* --- checkbox group ----------------------------------------------------- */
-fieldset:has(> label > input[type="checkbox"]) {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 0;
-  inline-size: 100%;
-  block-size: var(--control-block);
-  padding: 4px;
-  overflow: clip;
-  border-radius: var(--radius-pill);
-  background-color: var(--bg-gray);
-}
-
-fieldset:has(> label > input[type="checkbox"]) > label {
-  position: relative;
-  display: flex;
-  flex: 1 1 0;
-  min-inline-size: 0;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
-  padding: 6px 8px;
-  border-radius: var(--radius-pill);
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  font-weight: 400;
-  line-height: 1.6;
-  text-align: center;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-/* The member input is only an anchor: it sits invisibly on the label, which
-   is the real hit target. Writing `[type="checkbox"]` is what makes this 1px
-   box win over the standalone checkbox skin above — that selector is more
-   specific than a bare `input`, so before it applied here too and left a
-   20px control with 12px margins poking 10px out of the track. */
-fieldset:has(> label > input[type="checkbox"]) > label > input[type="checkbox"] {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  inline-size: 1px;
-  block-size: 1px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Filled from the label's own box, exactly as a checked radio segment is: the
-   track's 4px padding is what leaves the ring of track colour around it. */
-fieldset:has(> label > input[type="checkbox"]) > label:has(> input:checked) {
-  background-color: var(--primary);
-  color: var(--on-primary);
-  font-weight: 500;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+  box-shadow: var(--shadow-capsule);
 }
 
 /* Two touching checked segments: square the edge they share, and let the
@@ -523,9 +450,28 @@ fieldset:has(> label > input[type="checkbox"]) > label:has(> input:checked):has(
   clip-path: inset(0 0.5px 0 0);
 }
 
+/* The member input is only an anchor: it sits invisibly on the label, which
+   is the real hit target. One rule serves both types — the `[type]` beside
+   `:is()` is there purely to lend it a second attribute-level selector, so it
+   outranks the standalone checkbox skin above (which is `(0,2,1)`); otherwise
+   the skin's 20px box with 12px margins would poke 10px out of the track.
+   Only the geometry is reset: the skin's border and fill still land on this
+   1px box, and `opacity: 0` is what keeps them out of sight. */
+fieldset:has(> label > input) > label > input[type]:is([type="radio"], [type="checkbox"]) {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* --- focus ring on the wrapper, not on a segment ----------------------- */
-fieldset:has(> label > input[type="radio"]):has(> label > input:focus-visible),
-fieldset:has(> label > input[type="checkbox"]):has(> label > input:focus-visible) {
+fieldset:has(> label > input:focus-visible) {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
@@ -673,16 +619,22 @@ input[type="range"]:focus-visible {
 
    `input[type="submit"]` and `input[type="reset"]` then step one rung up
    from a plain button: they wear the same capsule as a checked segment in a
-   segmented control — pill radius plus the soft 1px drop shadow that gives
-   that segment its depth — so a form's commit button reads as the "chosen"
+   segmented control — pill radius plus `--shadow-capsule`, the one depth
+   token the two share — so a form's commit button reads as the "chosen"
    action, not as another utility button. `<button>` and `input[type="button"]`
    keep the 12px radius: a utility action should not look like a primary
    choice.
 
-   The `:disabled` rule re-states the accent fill because some UAs layer a
-   grey background onto `input[type="submit"]:disabled` even when a custom
-   background is set; pinning it back to --primary keeps the disabled look
-   identical across all controls (a 50%-opacity accent control).
+   Hover and focus-visible are nested into the base rule, so the four-item
+   selector list is written twice in this section (base and disabled) instead
+   of four times.
+
+   `:disabled` cannot be nested: the generic `input:disabled` rule in section
+   4 is `(0,1,1)` — it is written for the text wells — and a nested
+   `&:disabled` only reaches `(0,1,0)`, so it would repaint a disabled submit,
+   reset or button grey. `:is()` on that rule buys the extra class it needs
+   to keep the accent fill, so the disabled state is still the familiar
+   50%-opacity accent control and not a grey pill.
    -------------------------------------------------------------------------- */
 :where(button, input[type="submit"], input[type="reset"], input[type="button"]) {
   appearance: none;
@@ -700,6 +652,21 @@ input[type="range"]:focus-visible {
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
+
+  &:hover {
+    background-color: var(--primary-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+:is(button, input[type="submit"], input[type="reset"], input[type="button"]):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--primary);
 }
 
 /* submit / reset climb to the checked-segment capsule: same fill and label
@@ -707,22 +674,7 @@ input[type="range"]:focus-visible {
    make a radio segment read as the chosen one. */
 :where(input[type="submit"], input[type="reset"]) {
   border-radius: var(--radius-pill);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
-}
-
-:where(button, input[type="submit"], input[type="reset"], input[type="button"]):hover {
-  background-color: var(--primary-hover);
-}
-
-:where(button, input[type="submit"], input[type="reset"], input[type="button"]):disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: var(--primary);
-}
-
-:where(button, input[type="submit"], input[type="reset"], input[type="button"]):focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+  box-shadow: var(--shadow-capsule);
 }
 
 dialog {

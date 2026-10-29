@@ -148,6 +148,10 @@ blockquote footer {
    own further down, so numbers, dates and the next new text-like `type=` all
    inherit the well automatically. `input:not([type])` (a bare <input>) is
    covered by the same rule because it is not in the excluded list.
+
+   `[type="file"]` is *not* excluded any more: the file picker is skinned as a
+   plain well too, its native button hidden in section 7, so it lines up with
+   every other single-line field.
    -------------------------------------------------------------------------- */
 :where(
   input:not(
@@ -155,7 +159,6 @@ blockquote footer {
     [type="radio"],
     [type="range"],
     [type="color"],
-    [type="file"],
     [type="button"],
     [type="submit"],
     [type="reset"],
@@ -193,7 +196,6 @@ textarea {
     [type="radio"],
     [type="range"],
     [type="color"],
-    [type="file"],
     [type="button"],
     [type="submit"],
     [type="reset"],
@@ -518,35 +520,30 @@ fieldset:has(> label > input[type="checkbox"]):has(> label > input:focus-visible
 
 /* --------------------------------------------------------------------------
    7. File, colour and range
+
+   The file picker is deliberately skinned as an ordinary well: it inherits
+   the text-control rule in section 4 (gray fill, 12px corners, 2px transparent
+   border that turns blue on focus), so it lines up with a text input of the
+   same row. Only the native button is hidden; the file name stays visible as
+   the field's value, and the whole well remains clickable to open the picker
+   because the <input> itself is still the hit target.
+
+   The "no file chosen" text lives in the UA shadow DOM as an anonymous text
+   node, so `align-items: center` cannot be relied on to centre it across
+   browsers. `line-height` equal to the content-box height is a text-level
+   centring that works everywhere: content height = --control-block minus the
+   two 2px borders inherited from section 4, hence the hard-coded 4px. Keep
+   that 4px in sync if the control border width ever changes.
    -------------------------------------------------------------------------- */
 input[type="file"] {
-  /* The native button and the file name are one line; flexbox keeps that
-     line centred in the standard control height instead of glued to the
-     top edge, which is what a bare block-size would do. */
   display: flex;
   align-items: center;
-  block-size: var(--control-block);
-  border: 0;
-  padding: 0;
-  background-color: transparent;
-  font-size: 0.9rem;
+  cursor: pointer;
+  line-height: calc(var(--control-block) - 4px);
 }
 
 input[type="file"]::file-selector-button {
-  margin-inline-end: 1rem;
-  padding: 8px 16px;
-  border: 0;
-  border-radius: var(--radius-md);
-  background-color: var(--bg-gray);
-  color: var(--text-main);
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-input[type="file"]::file-selector-button:hover {
-  background-color: var(--bg-hover);
+  display: none;
 }
 
 input[type="color"] {

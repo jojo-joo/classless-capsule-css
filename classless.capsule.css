@@ -42,6 +42,9 @@
 
   --radius-md: 12px;
   --radius-pill: 999px;
+  /* The soft drop shadow under every filled capsule — a checked segment,
+     submit, reset. One token, so the three never drift apart. */
+  --shadow-capsule: 0 1px 2px rgba(0, 0, 0, 0.22);
   /* Every single-line control is exactly this tall, so the "label | control"
      rows of a form line up. Widgets that are naturally smaller (checkbox,
      switch, colour, range) get the margin that centres them inside it. */
@@ -152,6 +155,10 @@ blockquote footer {
    `[type="file"]` is *not* excluded any more: the file picker is skinned as a
    plain well too, its native button hidden in section 7, so it lines up with
    every other single-line field.
+
+   `[type="submit"]`, `[type="reset"]` and `[type="button"]` stay excluded
+   here because section 8 skins them as accent controls, together with the
+   <button> element.
    -------------------------------------------------------------------------- */
 :where(
   input:not(
@@ -272,7 +279,12 @@ select {
    A checkbox is a square well with a hand-drawn check; a switch is the same
    idea stretched into a track, so it is a checkbox with role="switch".
    -------------------------------------------------------------------------- */
-input[type="checkbox"]:not([role="switch"]) {
+/* Wrapped in :where() so the skin comes out at specificity (0,0,1), like the
+   other element-level rules in this sheet. The segmented-control anchor in
+   section 6 then outranks it on its own, which is what lets that anchor be
+   one rule for both radios and checkboxes instead of a long
+   `fieldset > label > input[type="checkbox"]` specificity chain. */
+input:where([type="checkbox"]:not([role="switch"])) {
   appearance: none;
   -webkit-appearance: none;
   flex: none;
@@ -291,7 +303,7 @@ input[type="checkbox"]:not([role="switch"]) {
   transition: var(--transition);
 }
 
-input[type="checkbox"]:not([role="switch"]):checked {
+input:where([type="checkbox"]:not([role="switch"])):checked {
   border-color: var(--primary);
   background-color: var(--primary);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
@@ -637,8 +649,44 @@ input[type="range"]:focus-visible {
 
 /* --------------------------------------------------------------------------
    8. Buttons and dialog
+
+   <button> and the three button-like input types share one skin: the accent
+   fill, the white label and the standard control height. Section 4 excludes
+   those three input types from the text-well rule on purpose, so this is the
+   only place they get styled. `input[type="image"]` is left out: it is a
+   picture, and repainting its background would only fight the bitmap.
+
+   Two properties make the label sit dead-centre, and both are needed:
+
+   - `appearance: none` (plus the -webkit- prefix) strips the native button
+     rendering. Without it, Chrome / Safari paint `input[type="submit"]` and
+     `input[type="reset"]` with their own internal button layout, and
+     `text-align` is ignored inside that layout — which is why the label
+     stayed left-aligned before. Once the appearance is reset, the input
+     behaves like a plain styled box and `text-align: center` takes over.
+
+   - `line-height: var(--control-block)` makes the line box exactly as tall
+     as the content box (border-box height minus the zero vertical padding).
+     A single-line label is then centred vertically by the line box itself,
+     with no flex needed. The previous `line-height: 1.6` only produced a
+     1.52rem line box inside a 2.75rem box, so the text hugged the top edge.
+
+   `input[type="submit"]` and `input[type="reset"]` then step one rung up
+   from a plain button: they wear the same capsule as a checked segment in a
+   segmented control — pill radius plus the soft 1px drop shadow that gives
+   that segment its depth — so a form's commit button reads as the "chosen"
+   action, not as another utility button. `<button>` and `input[type="button"]`
+   keep the 12px radius: a utility action should not look like a primary
+   choice.
+
+   The `:disabled` rule re-states the accent fill because some UAs layer a
+   grey background onto `input[type="submit"]:disabled` even when a custom
+   background is set; pinning it back to --primary keeps the disabled look
+   identical across all controls (a 50%-opacity accent control).
    -------------------------------------------------------------------------- */
-button {
+:where(button, input[type="submit"], input[type="reset"], input[type="button"]) {
+  appearance: none;
+  -webkit-appearance: none;
   block-size: var(--control-block);
   padding: 0 1.5rem;
   border: 0;
@@ -648,21 +696,31 @@ button {
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 500;
-  line-height: 1.6;
+  line-height: var(--control-block);
+  text-align: center;
   cursor: pointer;
   transition: var(--transition);
 }
 
-button:hover {
+/* submit / reset climb to the checked-segment capsule: same fill and label
+   colour as the rule above, plus the pill radius and the soft shadow that
+   make a radio segment read as the chosen one. */
+:where(input[type="submit"], input[type="reset"]) {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+}
+
+:where(button, input[type="submit"], input[type="reset"], input[type="button"]):hover {
   background-color: var(--primary-hover);
 }
 
-button:disabled {
+:where(button, input[type="submit"], input[type="reset"], input[type="button"]):disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background-color: var(--primary);
 }
 
-button:focus-visible {
+:where(button, input[type="submit"], input[type="reset"], input[type="button"]):focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }

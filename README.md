@@ -1,6 +1,7 @@
-# materia
+# Classless Capsule CSS
 
-class-less css ui framework for resource constrained MCU.
+Capsule style, class-less css framework for resource constrained MCU.
+[demo](https://jojo-joo.github.io/classless-capsule-css/) is here.
 
 ## Goals
 
@@ -13,3 +14,6 @@ but concentrate on
 - modern style eg switch & theme
 - easy study
 
+## Showcase
+
+![alt text](assets/README/image.png)
